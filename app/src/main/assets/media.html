@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castly</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#eef1f6;font:32px system-ui,sans-serif}
+video,img{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;display:none;background:#000}
+#au{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:0 40px}
+#go{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000c;font-size:40px}
+</style></head><body>
+<video id="v" playsinline></video><img id="im" alt=""><audio id="a"></audio>
+<div id="au"><div style="font-size:120px">&#9835;</div><div id="t"></div></div>
+<div id="go">Press OK to start</div>
+<script>
+const code=new URLSearchParams(location.search).get('code')||'';
+const q=u=>u+(u.includes('?')?'&':'?')+'code='+code,$=s=>document.getElementById(s);
+let list=[],cur=-1,seq=-1,el=null;
+const j=async u=>(await fetch(q(u))).json();
+function show(it){
+  for(const x of ['v','im','au'])$(x).style.display='none';
+  ['v','a'].forEach(x=>{$(x).pause();$(x).removeAttribute('src')});
+  el=null;if(!it)return;
+  if(it.type==='video'){el=$('v');el.src=q(it.url);el.style.display='block'}
+  else if(it.type==='audio'){el=$('a');el.src=q(it.url);$('au').style.display='flex';$('t').textContent=it.name}
+  else{$('im').src=q(it.url);$('im').style.display='block'}
+}
+async function tick(){ // the phone is the remote: ask what it wants every half second
+  try{const s=await j('/state');
+    if(s.i!==cur){cur=s.i;seq=-1;show(list[cur])}
+    if(el){
+      if(s.playing&&el.paused)el.play().then(()=>$('go').style.display='none').catch(()=>$('go').style.display='flex');
+      if(!s.playing&&!el.paused)el.pause();
+      if(s.seq!==seq){seq=s.seq;if(s.seek!=null)el.currentTime=s.seek}
+    }}catch(e){}
+}
+setInterval(()=>{if(el&&el.duration)fetch(q('/pos')+'&p='+el.currentTime+'&d='+el.duration)},1000);
+['v','a'].forEach(x=>$(x).onended=()=>fetch(q('/ended')));
+$('go').onclick=()=>{if(el)el.play();$('go').style.display='none'};   // some TV browsers need one OK press before sound
+addEventListener('keydown',e=>{if(e.key==='Enter')$('go').onclick()});
+(async()=>{list=await j('/queue');tick();setInterval(tick,500)})();
+</script></body></html>

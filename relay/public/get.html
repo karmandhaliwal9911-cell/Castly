@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castly: mirror your phone to any TV</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#070b16;color:#eef1f6;font:17px/1.55 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:34px;margin:0 0 8px;letter-spacing:-.02em}h2{margin:32px 0 8px;font-size:20px}
+p,li{color:#b6bfcd}a.b{display:inline-block;margin-top:16px;padding:14px 26px;border-radius:16px;background:#5eead4;color:#06201c;font-weight:800;text-decoration:none}
+.c{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:4px 20px;margin-top:14px}
+</style></head><body><main>
+<h1>Castly</h1>
+<p>Mirror your phone to a TV with sound. No cables, no ads, no account.</p>
+<a class="b" id="dl" href="#">Download phone app</a> <a class="b" id="dltv" href="#" style="background:rgba(255,255,255,.12);color:#eef1f6">Download TV app</a>
+<h2>What it does</h2>
+<div class="c"><ul>
+<li>Show your whole screen, or just one app, on the TV</li>
+<li>Play a video, song or photo on the TV without mirroring</li>
+<li>Use your phone as a TV remote, with touchpad, scroll and keyboard</li>
+<li>Send APKs and files to the TV</li>
+<li>Watch your TV screen on your phone</li>
+</ul></div>
+<h2>Install</h2>
+<div class="c"><ol>
+<li>Download the APK on your phone and open it. Allow <b>Install unknown apps</b> when asked.</li>
+<li>On the TV, open this website's home page. It shows a code and a QR code.</li>
+<li>In Castly choose <b>Connect to TV</b>, then <b>Code</b>, and type the code, or scan the QR.</li>
+<li>Tap the big button and choose what to show.</li>
+</ol></div>
+<p style="margin-top:24px;font-size:14px">Your phone and TV must be on the same Wi&#8209;Fi. Video and sound go straight from the phone to the TV and never pass through this website.</p>
+</main>
+<script>
+const PHONE_APK="https://github.com/YOUR_NAME/castly/releases/download/latest/castly-phone.apk"; // change YOUR_NAME
+const TV_APK="https://github.com/YOUR_NAME/castly/releases/download/latest/castly-tv.apk";
+document.getElementById('dl').href=PHONE_APK;document.getElementById('dltv').href=TV_APK;
+</script></body></html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Castly TV</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#eef1f6;font:20px system-ui,sans-serif}
+#join{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+input{font:700 44px system-ui;letter-spacing:.3em;width:7em;text-align:center;padding:12px;border-radius:16px;border:2px solid #2a313d;background:#171b22;color:inherit}
+button{font:700 24px system-ui;padding:14px 40px;border-radius:16px;border:0;background:#5eead4;color:#06201c}
+#msg{color:#8a94a6;min-height:1.4em}
+canvas{display:none;position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+</style></head><body>
+<div id="join">
+  <h1 style="margin:0">Castly</h1>
+  <div>Enter the code shown on your phone</div>
+  <input id="code" inputmode="numeric" maxlength="6" autofocus>
+  <button id="go">Connect</button>
+  <div id="msg"></div>
+</div>
+<canvas id="cv"></canvas><div id="osd" style="position:fixed;top:24px;right:32px;background:#000a;padding:8px 16px;border-radius:12px;opacity:0;transition:opacity .2s"></div>
+<script>
+const RELAY='https://castly.tv'; // your relay address
+const $=s=>document.querySelector(s),cv=$('#cv'),g=cv.getContext('2d');
+const BUF=(+new URLSearchParams(location.search).get('buf')||120)*1000; // jitter buffer in µs, same for audio and video
+let ws,dec,ac,next=0,gotKey=false,ofs=null,aoff=0,q=[],last=null,dirty=false;
+const now=()=>performance.now()*1000;
+function msg(t){$('#msg').textContent=t}
+// Map phone clock -> TV clock. Follows the fastest packets, creeps up slowly to survive clock drift.
+function sync(ts){const v=now()-ts;ofs=ofs===null||v<ofs?v:ofs+(v-ofs)*0.001}
+const outLat=()=>((ac&&(ac.outputLatency||ac.baseLatency))||0)*1e6; // sound leaves the speakers this much later
+function startDecoder(){
+  dec=new VideoDecoder({
+    output:f=>q.push({f,due:f.timestamp+ofs+BUF+outLat()}),
+    error:e=>msg('Video error: '+e.message)});
+  dec.configure({codec:'avc1.420028',optimizeForLatency:true});
+}
+function loop(){ // show each frame at its due time so picture and sound stay together
+  const t=now();
+  while(q.length&&q[0].due<=t){if(last)last.f.close();last=q.shift();dirty=true}
+  if(dirty&&last){const f=last.f;if(cv.width!==f.displayWidth){cv.width=f.displayWidth;cv.height=f.displayHeight}g.drawImage(f,0,0);dirty=false}
+  requestAnimationFrame(loop);
+}
+function playPcm(buf,ts){
+  const n=buf.byteLength>>2,s=new Int16Array(buf.slice(0,n*4)),ab=ac.createBuffer(2,n,48000);
+  const L=ab.getChannelData(0),R=ab.getChannelData(1);
+  for(let i=0;i<n;i++){L[i]=s[2*i]/32768;R[i]=s[2*i+1]/32768}
+  const delay=(ts+ofs+BUF+aoff*1000-now())/1e6; // seconds until this sound should play
+  if(delay<-0.04)return;                         // too late: skip so sound never lags behind the picture
+  let when=ac.currentTime+Math.max(delay,0.01);
+  if(Math.abs(when-next)>0.04)next=when;         // re-sync only when it drifts, otherwise play gap-free
+  const src=ac.createBufferSource();src.buffer=ab;src.connect(ac.destination);
+  src.start(next);next+=ab.duration;
+}
+$('#go').onclick=()=>{
+  const code=$('#code').value.trim();
+  if(code.length!==6)return msg('Type the 6-digit code from your phone.');
+  if(!window.VideoDecoder)return msg('This TV is too old to play the screen stream (needs Samsung 2022+, LG 2023+ or Chrome 94+). Sharing videos and files still works.');
+  ac=new AudioContext({latencyHint:'interactive',sampleRate:48000});ac.resume();
+  msg('Connecting…');
+  ws=new WebSocket('ws://'+location.hostname+':8081/?code='+code);ws.binaryType='arraybuffer';
+  ws.onopen=()=>{startDecoder();$('#join').style.display='none';cv.style.display='block';requestAnimationFrame(loop)};
+  ws.onclose=()=>{if(pc&&cv.style.display==='block')return location.href=RELAY; // TV app on Samsung/LG: back to the code screen
+    cv.style.display='none';$('#join').style.display='flex';msg('Disconnected. Check the code and try again.');try{dec.close()}catch(e){}gotKey=false;ofs=null;q=[]};
+  ws.onmessage=e=>{
+    const v=new DataView(e.data),type=v.getUint8(0),ts=v.getFloat64(1),data=e.data.slice(9);
+    sync(ts);
+    if(type===3)return playPcm(data,ts);
+    if(type===1)gotKey=true;
+    if(!gotKey||dec.decodeQueueSize>3&&type===2)return;
+    dec.decode(new EncodedVideoChunk({type:type===1?'key':'delta',timestamp:ts,data}));
+  };
+};
+// Sound out of step with picture (e.g. Bluetooth speaker)? Use the TV remote: Left = sound earlier, Right = sound later.
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){aoff+=e.key==='ArrowRight'?10:-10;
+    $('#osd').textContent='Sound offset '+(aoff>0?'+':'')+aoff+' ms';$('#osd').style.opacity=1;setTimeout(()=>$('#osd').style.opacity=0,1500)}});
+const pc=new URLSearchParams(location.search).get('code');if(pc){$('#code').value=pc;$('#go').click()} // TV app opens ?code=
+cv.onclick=()=>document.fullscreenElement?document.exitFullscreen():cv.requestFullscreen?.();
+</script></body></html>

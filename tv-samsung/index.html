@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castly</title></head>
+<body style="margin:0;background:#000;color:#eef1f6;font:44px sans-serif;display:grid;place-items:center;height:100vh;text-align:center">
+<div id="m">Castly</div>
+<script>
+const RELAY = "https://castly.tv";   // set this to where you host /relay
+function go() {
+  if (navigator.onLine === false) { document.getElementById("m").textContent = "No internet. Check the TV network, then reopen Castly."; return; }
+  location.replace(RELAY);          // shows the code and QR code; the phone connects and the TV jumps to the stream
+}
+go(); addEventListener("online", go);
+</script></body></html>

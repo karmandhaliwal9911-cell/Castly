@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castly files</title>
+<style>
+html,body{margin:0;min-height:100%;background:#000;color:#eef1f6;font:30px system-ui,sans-serif}
+main{max-width:900px;margin:0 auto;padding:48px 32px}
+h1{margin:0 0 8px}p{color:#8a94a6;font-size:24px;margin:0 0 28px}
+a{display:flex;justify-content:space-between;gap:24px;padding:22px 26px;margin-bottom:14px;border-radius:18px;background:#171b22;border:3px solid #2a313d;color:inherit;text-decoration:none}
+a:focus,a:hover{border-color:#5eead4;outline:none;background:#202631}
+small{color:#8a94a6;font-size:24px;white-space:nowrap}
+</style></head><body><main>
+<h1>Files from your phone</h1>
+<p>Press OK on a file to download it. After an APK downloads, open it to install the app.</p>
+<div id="l">Loading&hellip;</div>
+</main><script>
+const code=new URLSearchParams(location.search).get('code')||'';
+const q=u=>u+(u.includes('?')?'&':'?')+'code='+code;
+fetch(q('/files')).then(r=>r.json()).then(f=>{
+  document.getElementById('l').innerHTML=f.map(x=>'<a href="'+q(x.url)+'" download><span>'+x.name.replace(/</g,'&lt;')+'</span><small>'+(x.size/1048576).toFixed(1)+' MB</small></a>').join('');
+  const a=document.querySelector('a');if(a)a.focus();
+});
+</script></body></html>

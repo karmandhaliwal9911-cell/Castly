@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Castly TV</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#eef1f6;font:28px system-ui,sans-serif}
+main{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center}
+#code{display:flex;gap:12px}#code span{width:72px;height:96px;display:grid;place-items:center;font-size:56px;font-weight:800;background:#171b22;border:2px solid #2a313d;border-radius:16px}
+img{width:240px;height:240px;border-radius:16px;background:#fff}
+.m{color:#8a94a6;font-size:22px;max-width:720px}
+</style></head><body><main>
+  <h1 style="margin:0">Castly</h1>
+  <div class="m">On your phone: Castly &rarr; Connect to TV &rarr; Code, then type this code</div>
+  <div id="code" aria-live="polite"></div>
+  <img id="qr" alt="QR code" hidden>
+  <div class="m" id="s">Or scan the QR code in the Castly app</div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+function open(){
+  const ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/tv');
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.code){$('#code').innerHTML=[...m.code].map(d=>'<span>'+d+'</span>').join('');$('#qr').src='/qr.svg?c='+m.code;$('#qr').hidden=false}
+    if(m.go){$('#s').textContent='Connecting to your phone\u2026';location.href=m.go}};   // jumps to the phone, which streams directly
+  ws.onclose=()=>{$('#s').textContent='Refreshing code\u2026';setTimeout(open,2000)};
+}
+open();
+</script></body></html>

@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.Castly" parent="android:Theme.Material.NoActionBar" />
+</resources>

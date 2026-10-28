@@ -1,0 +1,12 @@
+{
+  "id": "tv.castly.app",
+  "version": "1.0.0",
+  "vendor": "Castly",
+  "type": "web",
+  "main": "index.html",
+  "title": "Castly",
+  "icon": "icon80.png",
+  "largeIcon": "icon130.png",
+  "bgColor": "#000000",
+  "resolution": "1920x1080"
+}
