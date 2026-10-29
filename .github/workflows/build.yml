@@ -1,37 +1,21 @@
 name: Build Castly APKs
-on:
-push:
-branches: [main]
-workflow_dispatch:
-permissions:
-contents: write
+on: [push, workflow_dispatch]
+permissions: { contents: write }
 jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v4
-- uses: actions/setup-java@v4
-with:
-distribution: temurin
-  java-version: 17
-- uses: gradle/actions/setup-gradle@v4
-with:
-gradle-version: "8.9"
-- name: Build phone and TV apps
-run: gradle :app:assembleDebug :tv-app:assembleDebug --stacktrace
-- name: Give the APKs simple names
-run: |
-mkdir out
-cp app/build/outputs/apk/debug/app-debug.apk out/castly-phone.apk
-cp tv-app/build/outputs/apk/debug/tv-app-debug.apk out/castly-tv.apk
-- uses: actions/upload-artifact@v4
-with:
-name: castly-apks
-path: out/.apk
-- name: Publish links (Releases page)
-uses: softprops/action-gh-release@v2
-with:
-tag_name: latest
-name: Castly latest build
-files: out/.apk
-make_latest: true
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.9" }
+      - name: Build phone and TV apps
+        run: gradle :app:assembleDebug :tv-app:assembleDebug --stacktrace
+      - name: Give the APKs simple names
+        run: mkdir out && cp app/build/outputs/apk/debug/app-debug.apk out/castly-phone.apk && cp tv-app/build/outputs/apk/debug/tv-app-debug.apk out/castly-tv.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: castly-apks, path: "out/*.apk" }
+      - name: Publish links
+        uses: softprops/action-gh-release@v2
+        with: { tag_name: latest, name: Castly latest build, files: "out/*.apk", make_latest: true }
