@@ -18,7 +18,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 
 class MainActivity : ComponentActivity() {
     private val st = CastState()
-    private val rc = RemoteClient { st.tv }
+    private val rc = RemoteClient()
     private lateinit var prefs: Prefs
     private lateinit var finder: TvFinder
     private var wholeScreen = true
