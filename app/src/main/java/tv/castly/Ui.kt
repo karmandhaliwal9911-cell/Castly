@@ -52,7 +52,6 @@ fun CastlyTheme(p: Prefs, content: @Composable () -> Unit) {
 fun CastlyApp(s: CastState, p: Prefs, onStart: (Boolean) -> Unit, onStop: () -> Unit, rc: RemoteClient, onScan: (() -> Unit) -> Unit, onShare: () -> Unit, onShareStop: () -> Unit, onSend: () -> Unit, onSendStop: () -> Unit, onTvMirror: () -> Unit, onTvMirrorStop: () -> Unit, onBle: () -> Unit) {
     val drawer = rememberDrawerState(DrawerValue.Closed); val scope = rememberCoroutineScope()
     var page by remember { mutableStateOf("home") }
-    val rc = remember { RemoteClient() }
     fun go(x: String) { page = x; scope.launch { drawer.close() } }
     BackHandler(page != "home") { page = "home" }
     ModalNavigationDrawer(drawerState = drawer, drawerContent = {
@@ -63,8 +62,8 @@ fun CastlyApp(s: CastState, p: Prefs, onStart: (Boolean) -> Unit, onStop: () -> 
                 NavigationDrawerItem(label = { Text(t) }, selected = page == k, onClick = { go(k) }, modifier = Modifier.padding(horizontal = 12.dp))
             }
         }
-    }, containerColor = Color.Transparent) {
-        when (page) {
+    }) {
+         when (page) {
             "home" -> Home(s, { scope.launch { drawer.open() } }, { go("connect") }, onStart, onStop)
             "connect" -> Connect(s, onScan, onBle) { go("home") }
             "remote" -> RemotePage(s, p, rc) { go("home") }
