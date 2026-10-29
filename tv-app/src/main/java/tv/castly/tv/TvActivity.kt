@@ -1,6 +1,7 @@
 package tv.castly.tv
 
 import android.app.Activity
+import tv.castly.MirrorService
 import android.app.AlertDialog
 import android.graphics.Color
 import android.net.nsd.NsdManager
